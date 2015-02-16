@@ -1,4 +1,4 @@
-## ELastic{on} 2015 Talk
+## Elastic{on} 2015 Talk
 
 This repository exists to collect our GitHub ElasticSearch stories and then
 craft them into coherent talk for Elastic{on} 2015. The stories are being
