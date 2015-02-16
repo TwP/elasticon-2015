@@ -3,7 +3,7 @@ Jan 2013 - Initial failure of the code search cluster
 [blog post](https://github.com/blog/1381-a-whole-new-code-search)
 [post mortem](https://github.com/blog/1397-recent-code-search-outages)
 
-## what happened
+## background
 
 Our initial roll-out of source code search occurred on Jan 23, 2013
 
