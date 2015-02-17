@@ -10,8 +10,6 @@ indices.
 
 This is a 5 node cluster with 2 storage nodes and 3 dedicated master nodes.
 
-## what went wrong
-
 The rolling restart went just fine. We started with the three master nodes and
 then proceeded to the two storage nodes. The first storage node did not recover
 shards from local storage; all shards were streamed from the other storage node.
@@ -33,11 +31,48 @@ failed to mention was that this is only the case if you set the
 `wait_for_completion` flag on the request.
 
 Ten indices started an `_upgrade` at the same time and quickly consumed all disk
-IO available. Eventually the process became unresponsive and the machine dropped
-out of the cluster. This stopped the upgrade process, and the machine then
-rejoined the cluster.
+IO available. Eventually the ES process became unresponsive and the machine
+dropped out of the cluster. This stopped the upgrade process, and the machine
+then rejoined the cluster again.
+
+Fortunately there was no data loss and no shard corruption. Having recent
+snapshots also reduces worry; we could easily restore from snapshots.
+
+We finished the `_upgrade` process by upgrading each index one by one. The
+remainder of the indices we upgraded by re-indexing from the information stored
+in our database.
+
+## what went wrong
+
+Believe it or not, the upgrade process is not what we want to focus on here. The
+real problems started after the upgrade was complete. Under ES 1.2.3, the
+nominal load on this cluster was in the ~0.5 to ~1.5 range. After the
+upgrade to ES 1.4.2, the nominal load on this cluster was in the ~4.5 to ~5.5
+range.
+
+FIXME - need a graph here show the uptick in load
+
+Obviously a factor of five increase in load falls outside the realm of normal.
+The question now is: is this the new normal, or is something else going on?
+
+Disk utilization was similar before and after the upgrade. So we are not
+experiencing higher load due to the new Lucene segment file format.
+
+The increase in load was solely an increase in system CPU usage and an increase
+in user process CPU usage. We also saw an increase JVM old-gen heap usage.
+Memory was being promoted to the old-gen heap at a much higher rate after the
+upgrade than before the upgrade.
 
 ## how we fixed it
+
+* open a support request ticket
+* get `hot_threads`
+* see that 95% of our thread time is spent in IOWait
+* realize we are calling `/_nodes/_local/stats` a lot!
+* add samplers for the management thread stats
+* change our haproxy checks to call the ping endpoint instead
+* load drops back down to pre-upgrade levels
+* the number of management requests drops by a factor of five
 
 ## lessons learned
 
