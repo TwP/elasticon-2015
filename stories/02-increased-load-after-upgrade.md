@@ -50,7 +50,11 @@ nominal load on this cluster was in the ~0.5 to ~1.5 range. After the
 upgrade to ES 1.4.2, the nominal load on this cluster was in the ~4.5 to ~5.5
 range.
 
-FIXME - need a graph here show the uptick in load
+![](/images/2015-02-05-githubsearch3-load.png)
+![](/images/2015-02-05-githubsearch3-disk-utilization.png)
+![](/images/2015-02-05-githubsearch3-cpu.png)
+
+https://github-images.s3.amazonaws.com/s3-image-uploader/ed442c8b911d1a816cb82d8ef0675fc28062e6893a652403a6/graph.png
 
 Obviously a factor of five increase in load falls outside the realm of normal.
 The question now is: is this the new normal, or is something else going on?
@@ -69,6 +73,9 @@ upgrade than before the upgrade.
 * get `hot_threads`
 * see that 95% of our thread time is spent in IOWait
 * realize we are calling `/_nodes/_local/stats` a lot!
+
+![not tracking management threads](/images/2015-02-05-githubsearch3-management-threads.png)
+
 * add samplers for the management thread stats
 * change our haproxy checks to call the ping endpoint instead
 * load drops back down to pre-upgrade levels
