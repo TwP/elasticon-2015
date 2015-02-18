@@ -69,7 +69,10 @@ upgrade than before the upgrade.
 
 ## how we fixed it
 
-* open a support request ticket
+Something has definitely changed in ElasticSearch after the upgrade to ES 1.4.2;
+the question is "what is different". And more importantly "can we fix it".
+
+* open a [support request ticket](https://support.elasticsearch.com/requests/7200)
 * get `hot_threads`
 * see that 95% of our thread time is spent in IOWait
 * realize we are calling `/_nodes/_local/stats` a lot!
