@@ -148,18 +148,42 @@ management thread pool and see if we have increased our haproxy stats calls.
 
 Shoot! We are not collecting these metrics from our stats sampler (that is the
 process referred to above where we are sampling metrics every 10 seconds from
-our ElasticSearch clusters.). So our first order of business is to add the
+our ElasticSearch clusters.). So the first order of business is to add the
 management thread pool to the list of metrics we are going to sample. After that
 is done we can generate graphs, but we do not have any indication of "normal"
 prior to the upgrade.
 
+![](/iamges/2015-02-12-githubsearch3-management-completed.png)
 
+Now this is an interesting graph. We are plotting the number of management
+threads that have completed. Since this is a monotonically increasing number, we
+can take the derivative of the value to get a completion rate per minute. The
+two storage nodes are showing a completion rate of 2,500 management threads per
+minute. Interestingly enough the arbiter nodes are showing a completion rate of
+6 management threads per minute.
 
+The arbiter nodes are configured as master-eligible only - they do not store
+data or service queries. These nodes are not part of the haproxy round-robin
+configuration. The metrics sampler is the only process requesting
+`/_nodes/stats` from these machines. This is a smoking gun for haproxy being the
+root cause of our excessive load.
 
-* add samplers for the management thread stats
-* change our haproxy checks to call the ping endpoint instead
-* load drops back down to pre-upgrade levels
-* the number of management requests drops by a factor of five
+Instead of polling the `/_nodes/_local/stats` to check on the server, what if we
+configure haproxy to poll the `/` ping endpoint instead? We rolled that change
+out to our ~100 servers, and here is the affect on the management thread pool.
+
+![](/images/2015-02-12-githubsearch3-management-completed-fixed.png)
+![](/images/2015-02-12-githubsearch3-load.png)
+![](/images/2015-02-12-githubsearch3-cpu.png)
+
+We can see a nice decrease in management threads, load, and CPU as the haproxy
+changes roll out to all the machines in the data center. This is a clear win.
+
+The root cause is a change in the `/_nodes/stats` call in ElasticSearch. With
+the newer version of ES, the default is to return all stats including
+information about segment files and index sizes. ES is gathering this
+information from the system with each request - hence the increase in system CPU
+as the user process waits on disk IO.
 
 ## lessons learned
 
