@@ -69,15 +69,92 @@ upgrade than before the upgrade.
 
 ## how we fixed it
 
-Something has definitely changed in ElasticSearch after the upgrade to ES 1.4.2;
-the question is "what is different". And more importantly "can we fix it".
+Something has definitely changed in ElasticSearch after the upgrade to ES 1.4.2.
+The question is "what is different", and more importantly "can we fix it".
 
-* open a [support request ticket](https://support.elasticsearch.com/requests/7200)
-* get `hot_threads`
-* see that 95% of our thread time is spent in IOWait
-* realize we are calling `/_nodes/_local/stats` a lot!
+Our first thought was that this is the new normal with ES 1.4.2 and we just have
+to get used to it. We opened a [support ticket](https://support.elasticsearch.com/requests/7200)
+with ElasticSearch to see if this really was the new normal or if something was
+wrong with this cluster.
+
+The first thing ElasticSearch support asked for was a listing of the
+`/_nodes/hot_threads` from the two storage nodes.
+
+```
+97.4% (487.1ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#2]'
+ 9/10 snapshots sharing following 9 elements
+   org.elasticsearch.action.admin.indices.stats.ShardStats.<init>(ShardStats.java:49)
+   org.elasticsearch.indices.InternalIndicesService.stats(InternalIndicesService.java:212)
+   org.elasticsearch.node.service.NodeService.stats(NodeService.java:156)
+   org.elasticsearch.action.admin.cluster.node.stats.TransportNodesStatsAction.nodeOperation(TransportNodesStatsAction.java:96)
+   org.elasticsearch.action.admin.cluster.node.stats.TransportNodesStatsAction.nodeOperation(TransportNodesStatsAction.java:44)
+   org.elasticsearch.action.support.nodes.TransportNodesOperationAction$AsyncAction$2.run(TransportNodesOperationAction.java:141)
+   java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+   java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+   java.lang.Thread.run(Thread.java:745)
+
+97.3% (486.3ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#3]'
+ 2/10 snapshots sharing following 20 elements
+   java.io.UnixFileSystem.getLength(Native Method)
+   java.io.File.length(File.java:968)
+   org.apache.lucene.store.FSDirectory.fileLength(FSDirectory.java:258)
+   org.apache.lucene.store.FileSwitchDirectory.fileLength(FileSwitchDirectory.java:147)
+   org.apache.lucene.store.FilterDirectory.fileLength(FilterDirectory.java:63)
+   org.elasticsearch.index.store.DistributorDirectory.fileLength(DistributorDirectory.java:113)
+   org.apache.lucene.store.FilterDirectory.fileLength(FilterDirectory.java:63)
+   org.elasticsearch.common.lucene.Directories.estimateSize(Directories.java:43)
+
+96.4% (482.1ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#4]'
+ 2/10 snapshots sharing following 19 elements
+   org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:223)
+   org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:242)
+   org.apache.lucene.store.FileSwitchDirectory.listAll(FileSwitchDirectory.java:87)
+   org.apache.lucene.store.FilterDirectory.listAll(FilterDirectory.java:48)
+   org.elasticsearch.index.store.DistributorDirectory.listAll(DistributorDirectory.java:88)
+   org.apache.lucene.store.FilterDirectory.listAll(FilterDirectory.java:48)
+   org.elasticsearch.common.lucene.Directories.estimateSize(Directories.java:40)
+```
+
+The top three active threads on this storage node are all *management* threads.
+The first thread is collecting shard statistics. The next two threads are
+estimating the index size by looking at the Lucene segment files on disk.
+
+Why are these management threads consuming so much of the application time, CPU,
+and heap? There is no way that ES 1.4.2 could be this horribly inefficient and
+be released by ElasticSearch.
+
+Let's look through out application and see where we are calling `/_nodes/stats`
+against this cluster. There are two places where this happens regularly. The
+first is our metrics collection framework. Every 10 seconds we request stats
+from each node in the cluster and then store those stats in graphite (which
+generates all these pretty graphs). It would be terrible news if those stats
+calls are causing this amount of overhead on the cluster. We would have to
+rethink our fundamental approach to monitoring and operating our ES clusters.
+
+The second place where we are calling `/_nodes/stats` is via haproxy. When an
+application connects to an ElasticSearch cluster, it always connects to a
+designated port on `localhost` - `http://localhost:9210` in the case of the
+`githubsearch3` cluster. This is a connection to haproxy that round-robins
+requests to the two storage nodes. haproxy is configured to check that the
+storage nodes are online by making a request to `/_nodes/_local/stats`. We have
+this haproxy configuration setup across ~100 machines; this means we have ~100
+machines making these `/_nodes/_local/stats` requests to the githubsearch3
+cluster.
+
+ElasticSearch provides statistics on thread pool usage. So let's look at the
+management thread pool and see if we have increased our haproxy stats calls.
 
 ![not tracking management threads](/images/2015-02-05-githubsearch3-management-threads.png)
+
+Shoot! We are not collecting these metrics from our stats sampler (that is the
+process referred to above where we are sampling metrics every 10 seconds from
+our ElasticSearch clusters.). So our first order of business is to add the
+management thread pool to the list of metrics we are going to sample. After that
+is done we can generate graphs, but we do not have any indication of "normal"
+prior to the upgrade.
+
+
+
 
 * add samplers for the management thread stats
 * change our haproxy checks to call the ping endpoint instead
