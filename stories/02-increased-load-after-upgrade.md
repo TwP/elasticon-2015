@@ -187,17 +187,15 @@ as the user process waits on disk IO.
 
 ## lessons learned
 
-beware the `_upgrade` command - the documentation is unclear on how the upgrade
-progresses
+Read the release notes when upgrading ElasticSearch versions. The change in
+behavior of the `/_nodes/stats` endpoint was documented. We had forgotten all
+the locations we were using it, though. Monitor everything since we cannot
+remember everything.
 
-you can halt an upgrade by closing the index (dangerous!)
+It is a good idea to review your design decisions every now and again and ensure
+that they still hold true in the current software environment.
 
-streaming shards instead of recovering from local data - more of an annoyance
-than a problem
-
-measure everything
-
-things that worked previously might not work in the future as ElasticSearch
-changes
-
-
+Always test out new commands (such as the `/_upgrade` endpoint) in a development
+environment. Try to make that development environment as realistic as possible.
+Using snapshot data restored to a development cluster is one great way to do
+this.
