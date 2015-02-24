@@ -1,4 +1,4 @@
-For the past several years Tim has been exposing private keys and passwords
-stored in public repositories via the GitHub code search project. When not
-causing headaches for security response teams, Tim enjoys riding bicycles around
-his hometown of Boulder, Colorado.
+For the past several years Tim has been working at GitHub to make all things
+searchable. He has overseen GitHub's transition from a single Solr instance to
+running one of the larger Elasticsearch installations in production. When not
+indexing data, Tim enjoys cycling around his hometown of Boulder, Colorado.
