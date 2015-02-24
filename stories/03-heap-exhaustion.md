@@ -22,7 +22,7 @@ the cluster was in distress.
 
 The cluster went into a yellow state (as expected given the circumstances), but
 it failed to start allocating shards to the other storage nodes. Something else
-was amiss. We restarted the ElasticSeearch process on the storage node, and it
+was amiss. We restarted the ElasticSearch process on the storage node, and it
 rejoined the cluster. However, the cluster remained yellow and still refused to
 allocate shards to any machine.
 
@@ -79,11 +79,20 @@ ElasticSearch then began recovering shards onto this node.
 
 The cluster returned to a green state and we performed a rolling restart of each
 node in the cluster. As we restarted each node we expanded the raid-0 partition
-to give us more space on the cluster. This is only a short term solution. The
-longer term solution is to add more machines to the cluster. With each machine
-added we gain more JVM heap which is what the cluster really needs.
+to give us more disk space. This is only a short term solution. The longer term
+solution is to add more machines to the cluster. With each machine added we gain
+more JVM heap which is what the cluster really needs.
 
 ## lessons learned
 
+Keep an eyes on your key metrics and watch for long term growth trends.
 
+Monitoring is great, but you really need to have alerting on the metrics that
+you monitor. A nagios alert when these machines reached the low watermark would
+have saved us quite a bit of trouble.
+
+Forecasting growth is essential when you are running a search cluster on your
+own hardware. Physical hardware can be a long lead time item. You do not want to
+be in a position where your cluster goes down and the only solution is to wait
+six weeks for hardware to be delivered and installed.
 
