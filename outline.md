@@ -112,3 +112,22 @@ stories from the GitHub search clusters
 
 * SLIDE - show the `/es forecast disk` command
 
+## We :heart: graphs!
+
+* SLIDE - the three "where/what/where" bullet points below
+* they help us figure out
+  * where we have come from
+  * what we are doing
+  * where we are going
+* essential to operating our clusters
+
+* "where" questions are strategic - great for planning
+* "what" question is tactical - how is it going right now?
+
+### graph hygiene
+
+* measure everything
+* composable
+  * dashboards for strategic data
+  * ad-hoc graphs for tactical actions - chatops & /graph me
+
