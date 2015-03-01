@@ -127,7 +127,42 @@ stories from the GitHub search clusters
 ### graph hygiene
 
 * measure everything
-* composable
-  * dashboards for strategic data
-  * ad-hoc graphs for tactical actions - chatops & /graph me
+* dashboards for strategic data
+* ad-hoc graphs for tactical actions - chatops & /graph me
+
+## Elasticsearch 1.4 upgrade on githubsearch3
+
+
+
+## Where do metrics come from
+
+### hardware level
+
+* collectd
+* log files
+
+### Elasticsearch
+
+* Amen samplers
+
+### application
+
+* query timing from `elastomer-client`
+
+
+## App level stuff
+
+### show off our staff tools page
+
+### push button index creation
+
+### index naming and index versions
+
+### writing to multiple indices
+
+### production queries
+
+### "scientist" for load testing
+
+### Research clusters
 
