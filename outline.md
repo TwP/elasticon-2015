@@ -158,6 +158,24 @@ stories from the GitHub search clusters
 
 ## Elasticsearch 1.4 upgrade on githubsearch3
 
+### research1 cluster
+
+* SLIDE - stafftools/search_indexes page
+* spun up a research cluster to test out 1.4.2
+* used our index creation / backfilling to put production queries online
+* let the research1 cluster handle production queries during the upgrade
+
+### pause indexing queues
+
+* SLIDE - `/gh resque pause {index_high,index_low,index_bulk}`
+* allow jobs to queue up and then we can process them after the upgrade is complete
+
+### high load post upgrade
+
+* SLIDE - load
+* SLIDE - cpu
+* SLIDE - disk IO
+* what's going on here? is this the new "normal" under 1.4.2?
 
 
 ## Where do metrics come from
