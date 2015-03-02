@@ -59,12 +59,38 @@ stories from the GitHub search clusters
 * AWS is expensive
 * much better performance from real hardware
 
+### how we manage search indices
+
+* SLIDE - stafftools/search_indexes page
+* all indices have a numeric name
+* we use an alias to point to the current index that is serving production queries
+
+### index versions
+
+* SLIDE - mapping => `{"index-meta":{"_meta":{ ... }}}`
+* index settings and mappings are maintained in source code
+* we calculate a SHA1 hash of the data
+* and store that hash in mapping metadata in the index
+
+### scientist for load testing
+
+* SLIDE - scientist `control` / `candidate` block
+* we can route production queries to another cluster for load testing
+* chatops commands to control percentage of queries that flow to the candidate
+
+### why such fancy tools?
+
+* SLIDE - show our stafftools/search_indexes page (again)
+* automatic upgrades for GitHub Enterprise
+
 ## Understand your queries
 
 * SLIDE - highlight the dip where we used the proper filter level (skitch the previous graph)
 * top-level filters vs `filtered_query`
 * top-level filters and those same filters at the facet level
 * use filtered queries instead
+
+* ANOTHER SLIDE - show the same dip in Issues queries
 
 ## And then ignore your graphs
 
