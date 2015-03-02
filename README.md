@@ -18,7 +18,7 @@ help the talk transition from one story to the next.
 
 ### Theme
 
-**Elasticsearch in Anger**
+**Elasticsearch in Anger**<br/>
 _stories from the GitHub search clusters_
 
 * Where have we come from
