@@ -15,3 +15,19 @@ the post-mortem format:
 
 There is an optional "segue" section if there are some extra notes that will
 help the talk transition from one story to the next.
+
+### Theme
+
+**Elasticsearch in Anger**
+_stories from the GitHub search clusters_
+
+* Where have we come from
+* What are we doing
+* Where are we going
+
+The talk will walk through a code-search query metrics graph over the past 80 /
+90 weeks or so. We’ll highlight major events that appear on this graph. Along
+the way we’ll talk about how we use graphs and metrics to see past performance
+and predict future load and scaling needs. We’ll talk about the tools we use
+each day to handle index upgrades, cluster migrations, and other operational
+tasks.
