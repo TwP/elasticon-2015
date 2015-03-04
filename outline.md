@@ -177,6 +177,54 @@ stories from the GitHub search clusters
 * SLIDE - disk IO
 * what's going on here? is this the new "normal" under 1.4.2?
 
+### hot threads
+
+```
+97.4% (487.1ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#2]'
+ 9/10 snapshots sharing following 9 elements
+   org.elasticsearch.action.admin.indices.stats.ShardStats.<init>(ShardStats.java:49)
+
+97.3% (486.3ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#3]'
+ 2/10 snapshots sharing following 20 elements
+   java.io.UnixFileSystem.getLength(Native Method)
+
+96.4% (482.1ms out of 500ms) cpu usage by thread 'elasticsearch[githubsearch3-storage1-cp1-prd][management][T#4]'
+ 2/10 snapshots sharing following 19 elements
+   org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:223)
+```
+
+* these are all threads from the **management** thread pool
+* `/_nodes/stats` is the primary user of the **management** thread pool
+
+### look at the management thread pool stats
+
+* SLIDE - empty management thread pool graphs!
+* doh!
+* add management thread pool stats to our ES sampler
+
+### that's a lot of sampling
+
+* SLIDE - management thread pool stats
+* obviously our ES sampler is calling the `/_nodes/_local/stats` endpoint
+* but that much?
+* oh! haproxy is also calling this endpoint
+* the stats endpoint changed to include _all_ stats now hence the extra load
+
+### haproxy setup
+
+* each cluster is assigned a port
+* haproxy on "localhost" forwards that port to the cluster storage nodes
+* so we have an haproxy running on _every_ host in our data center hitting the
+  `/_nodes/_local/stats` endpoint for availability checks :rage4:
+* we should use a better availability check like the ping endpoint
+
+### decrease in graphs as haproxy changes roll out
+
+* SLIDE - decrease in management threads
+* SLIDE - decrease in load
+* SLIDE - decrease in CPU
+* yay! we fixed it
+
 
 ## Where do metrics come from
 
