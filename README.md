@@ -31,3 +31,7 @@ the way we’ll talk about how we use graphs and metrics to see past performance
 and predict future load and scaling needs. We’ll talk about the tools we use
 each day to handle index upgrades, cluster migrations, and other operational
 tasks.
+
+### License
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nd/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nd/4.0/">Creative Commons Attribution-NoDerivatives 4.0 International License</a>.
